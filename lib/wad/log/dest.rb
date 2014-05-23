@@ -2,7 +2,7 @@
 
 require 'date-utils'
 
-module Project
+module Wad
   ##
   ## == LogDest ==
   ##

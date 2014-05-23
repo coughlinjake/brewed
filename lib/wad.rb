@@ -1,28 +1,28 @@
 # encoding: utf-8
 
-# = Project.rb
+# = Wad.rb
 #
 # == Environment Variables
 #
 # HOSTNAME
 # : name of host application is executing on
 #
-# *PROJECTNAME*_MODE
+# *WAD_NAME*_MODE
 # : `dev`, `test`, `production`
 #
 # == Application State
 #
 # State directory:
 #
-#      [HOME]/state/[HOSTNAME]/[PROJECT_NAME]/[PROJECT_MODE]
+#      [HOME]/state/[HOSTNAME]/[WAD_NAME]/[WAD_MODE]
 #
 
 require 'singleton'
 require 'pathname'
 
-module Project
+module Wad
 
-  class ProjectBase
+  class WadBase
     include Singleton
 
     LIBDIR = Pathname.new(__FILE__).dirname.expand_path.freeze
@@ -32,7 +32,7 @@ module Project
     LIBSTR = 'lib'.freeze
 
     ##
-    # Determine the project directory.
+    # Determine the wad directory.
     #
     # @note IMPORTANT ASSUMPTIONS:
     #
@@ -43,7 +43,7 @@ module Project
     #
     #    3. $0 ends with a FILENAME (ie the script)
     ##
-    def self.find_project_dir()
+    def self.find_wad_dir()
       dir = (Pathname.getwd + $0).realpath
       begin
         dir = dir.dirname
@@ -51,7 +51,7 @@ module Project
       dir
     end
 
-    PROJECT_DIR = find_project_dir.freeze
+    WAD_DIR = find_wad_dir.freeze
 
     def self.add_load_path(dir)
       fulldir = Pathname.new(dir).expand_path
@@ -60,15 +60,15 @@ module Project
     end
 
     def self.bootstrap()
-      # add the real lib dir first so that project local files can over-ride global files
+      # add the real lib dir first so that wad local files can over-ride global files
       add_load_path REAL_LIBDIR
       add_load_path LIBDIR
-      add_load_path PROJECT_DIR
+      add_load_path WAD_DIR
     end
 
-    def self.project_relative(path)
+    def self.wad_relative(path)
       fullpath = Pathname.new(path).expand_path
-      fullpath.relative_path_from PROJECT_DIR
+      fullpath.relative_path_from WAD_DIR
     end
 
     ##
@@ -78,7 +78,7 @@ module Project
     #    +$LOAD_PATH+ will be updated to contain +submodule+'s dirname.
     ##
     def self.require_sub_modules(submodule)
-      submod_path = project_relative submodule
+      submod_path = wad_relative submodule
 
       # remove both the dirname and the file extension from this filename
       # 'app/models/tv.rb' => 'tv'
@@ -92,8 +92,8 @@ module Project
       require mod_root.to_s
 
       # find all filenames matching the glob "#{submod_dir}/#{submod_base}/*.rb"
-      Dir.glob(PROJECT_DIR + mod_root + '*.{rb,rbo}').
-          map { |mabs| Pathname.new(mabs.chomp(File.extname(mabs))).relative_path_from(PROJECT_DIR) }.
+      Dir.glob(WAD_DIR + mod_root + '*.{rb,rbo}').
+          map { |mabs| Pathname.new(mabs.chomp(File.extname(mabs))).relative_path_from(WAD_DIR) }.
           uniq.each do |modname|
         #puts "requiring #{modname.to_s}"
         require modname.to_s
@@ -102,13 +102,13 @@ module Project
   end
 
   ##
-  ## Bootstrap the project's execution/load environment.
+  ## Bootstrap the wad's execution/load environment.
   ##
-  ProjectBase.bootstrap
+  WadBase.bootstrap
 
   require 'data-utils'
 
-  class ProjectBase
+  class WadBase
     attr_accessor :dir, :script_name, :host, :home_dir,
                   :name, :run_mode,
                   :_log_root, :_log_filename,
@@ -123,16 +123,16 @@ module Project
 
       @host = @state_dir = @run_mode = ''
 
-      # @note Project assumes:
+      # @note Wad assumes:
       #    * it's located somewhere in lib directory tree,
       #    * the root of that **lib** tree is a directory named "lib"
-      #    * there are no intermediate directories between "lib" and project.rb also named "lib"
-      #    * the parent of "lib" is the root of the project
+      #    * there are no intermediate directories between "lib" and wad.rb also named "lib"
+      #    * the parent of "lib" is the root of the wad
       #
       # therefore, work our way backward back up the directory tree until we
       # reach a directory with a child dir named "lib"
-      @dir = PROJECT_DIR
-      @name = PROJECT_DIR.basename.to_s.downcase
+      @dir = WAD_DIR
+      @name = WAD_DIR.basename.to_s.downcase
 
       # set the host name
       hostname
@@ -146,7 +146,7 @@ module Project
         # "global" settings dir
         @run_mode = :disabled
 
-        @settings = [PROJECT_DIR, @host.is_str? ? @host : [], $PROGRAM_NAME].flatten.reduce :+
+        @settings = [WAD_DIR, @host.is_str? ? @host : [], $PROGRAM_NAME].flatten.reduce :+
 
         @_log_root = home_dir + 'Library/Logs'
         raise "invalid log_root: '#{_log_root}" unless _log_root.directory?
@@ -159,8 +159,8 @@ module Project
         # ../@name/
         #    @name/public
         #    @name/settings
-        @_public = PROJECT_DIR + 'public'
-        @settings = PROJECT_DIR + 'settings'
+        @_public = WAD_DIR + 'public'
+        @settings = WAD_DIR + 'settings'
 
         # @note set_run_mode also sets state directories
         set_run_mode
@@ -173,7 +173,7 @@ module Project
     # Return an absolute path within the working directory.
     #
     # The working directory is determined:
-    #   * value of PROJECT_WORKING_DIR env var
+    #   * value of WAD_WORKING_DIR env var
     #   * When run_mode is :daemon, the working dir is state_dir.
     #   * Otherwise, the current directory.
     #
@@ -221,7 +221,7 @@ module Project
     end
 
     ##
-    # Provide the absolute path to this Project's lib dir.
+    # Provide the absolute path to this Wad's lib dir.
     #
     # @return [String]
     ##
@@ -232,12 +232,12 @@ module Project
     ##
     # Sets the current application run mode.
     #
-    # Use {Project#run_mode} to query the application's run mode.
+    # Use {Wad#run_mode} to query the application's run mode.
     #
     # @note During initialization (probably before the application code starts),
     #    the run mode is set from the value of the application's run mode
     #    environment variable.  The variable name is constructed by uppercasing
-    #    the application name (see {Project#name}) and appending '_MODE'.
+    #    the application name (see {Wad#name}) and appending '_MODE'.
     #    The value of this environment variable should be one of:
     #    'production', 'dev', 'test'.
     #
@@ -248,14 +248,14 @@ module Project
     #    chance to over-ride the mode.
     #
     # @example Set the application run mode
-    #    Project.set_mode(:test)
+    #    Wad.set_mode(:test)
     # @example Query the application's run mode
-    #    mode = Project.run_mode
+    #    mode = Wad.run_mode
     ##
     def set_run_mode(mode = nil)
       env_var_name = nil
       if @run_mode.empty?
-        raise "too soon to set project_mode" unless mode.nil?
+        raise "too soon to set wad_mode" unless mode.nil?
 
         # FIXME|to protect each run mode's database from stomping on the
         # others, the datamapper database is stored in a directory
@@ -284,8 +284,8 @@ module Project
           @state_dir = _state_root + run_mode.to_s
         when :disabled, :none
           @run_mode = :disabled
-          @_state_root = PROJECT_DIR
-          @state_dir = PROJECT_DIR
+          @_state_root = WAD_DIR
+          @state_dir = WAD_DIR
         else
           raise "invalid mode: '#{mode.to_s}'"
       end
@@ -308,7 +308,7 @@ module Project
     # @return [String]
     #
     # @example Test if we're running on host 'bigmac'
-    #     if 'bigmac' == Project.hostname()
+    #     if 'bigmac' == Wad.hostname()
     #
     ##
     def hostname()
@@ -326,21 +326,21 @@ module Project
     end
 
     ##
-    # Provide an absolute pathname within the current project's directory
+    # Provide an absolute pathname within the current wad's directory
     # tree when provided relative path components.
     #
     # @param path [String]
     # @return [String]
     #
     # @example Get path to 'public' files
-    #    public_dir = Project.path('public')
+    #    public_dir = Wad.path('public')
     ##
     def path(*path)
-      [PROJECT_DIR, *path].reduce(:+)
+      [WAD_DIR, *path].reduce(:+)
     end
 
     ##
-    # Provide an absolute pathname within the project's public directory tree.
+    # Provide an absolute pathname within the wad's public directory tree.
     #
     # @param path [Array<String>]
     # @return [String]
@@ -350,7 +350,7 @@ module Project
     end
 
     ##
-    # Project.home(dir, ...)
+    # Wad.home(dir, ...)
     #
     ##
     def home(*path)
@@ -369,17 +369,17 @@ module Project
     # Provide the absolute path to the root of the state directories.
     #
     # @note  THIS SHOULD BE CONSIDERED AN INTERNAL METHOD!  Use
-    #   {Project#state}.
+    #   {Wad#state}.
     #
     # @example Determine database filename
-    #    dbfn = Project.state('database.sqlite')
+    #    dbfn = Wad.state('database.sqlite')
     ##
     def state_root(*path)
       [_state_root, *path].reduce(:+)
     end
 
     ##
-    # Provide an absolute path within the current Project's state dir.
+    # Provide an absolute path within the current Wad's state dir.
     #
     # @note The state directory depends on the current run mode.  This
     #    allows the application to store state during development which
@@ -387,7 +387,7 @@ module Project
     #    mode.
     #
     # @example Determine database filename
-    #    dbfn = Project.state('database.sqlite')
+    #    dbfn = Wad.state('database.sqlite')
     ##
     def state(*path)
       [state_dir, *path].reduce(:+)
@@ -423,34 +423,34 @@ end
 
 
 # class methods for convenient access to the Singleton
-module Project
-  def self.libdir()       ProjectBase.instance.libdir            end
-  def self.dir()          ProjectBase.instance.dir               end
-  def self.name()         ProjectBase.instance.name              end
-  def self.home_dir()     ProjectBase.instance.home_dir          end
-  def self.host()         ProjectBase.instance.host              end
-  def self.state_dir()    ProjectBase.instance.state_dir         end
-  def self.run_mode()     ProjectBase.instance.run_mode          end
-  def self.hostname()     ProjectBase.instance.hostname          end
-  def self.set_run_mode(mode = nil) ProjectBase.instance.set_run_mode(mode) end
-  def self.working_dir(*path)       ProjectBase.instance.working_dir(*path) end
-  def self.path(*path)    ProjectBase.instance.path(*path)       end
-  def self.home(*path)    ProjectBase.instance.home(*path)       end
-  def self.settings()     ProjectBase.instance.settings          end
-  def self.log(*path)     ProjectBase.instance.log(*path)        end
-  def self.state(*path)   ProjectBase.instance.state(*path)      end
-  def self.public(*path)  ProjectBase.instance.public(*path)     end
+module Wad
+  def self.libdir()       WadBase.instance.libdir            end
+  def self.dir()          WadBase.instance.dir               end
+  def self.name()         WadBase.instance.name              end
+  def self.home_dir()     WadBase.instance.home_dir          end
+  def self.host()         WadBase.instance.host              end
+  def self.state_dir()    WadBase.instance.state_dir         end
+  def self.run_mode()     WadBase.instance.run_mode          end
+  def self.hostname()     WadBase.instance.hostname          end
+  def self.set_run_mode(mode = nil) WadBase.instance.set_run_mode(mode) end
+  def self.working_dir(*path)       WadBase.instance.working_dir(*path) end
+  def self.path(*path)    WadBase.instance.path(*path)       end
+  def self.home(*path)    WadBase.instance.home(*path)       end
+  def self.settings()     WadBase.instance.settings          end
+  def self.log(*path)     WadBase.instance.log(*path)        end
+  def self.state(*path)   WadBase.instance.state(*path)      end
+  def self.public(*path)  WadBase.instance.public(*path)     end
 
-  def self.lock_dir()     ProjectBase.instance.lock_dir          end
+  def self.lock_dir()     WadBase.instance.lock_dir          end
   def self.lock_fname(*parms)
-    ProjectBase.instance.lock_fname *parms
+    WadBase.instance.lock_fname *parms
   end
 
   def self.expand_variables(*parms)
-    ProjectBase.instance.expand_variables(*parms)
+    WadBase.instance.expand_variables(*parms)
   end
 end
 
-require 'project/log'
-require 'project/exceptions'
-require 'project/settings'
+require 'wad/log'
+require 'wad/exceptions'
+require 'wad/settings'

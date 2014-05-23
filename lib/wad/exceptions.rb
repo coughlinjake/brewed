@@ -1,6 +1,6 @@
 require 'psych'
 
-module Project
+module Wad
 
   class AppError < StandardError
     def fatal?()        true    end

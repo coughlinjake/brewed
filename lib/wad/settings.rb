@@ -4,7 +4,7 @@
 
 require 'psych'
 
-require 'project'
+require 'wad'
 require 'data-utils/hash'
 
 module Settings
@@ -16,10 +16,10 @@ module Settings
 
   ##
   # Load all of the settings files in the specified directory.  If no
-  # directory is specified, calls Project#settings.
+  # directory is specified, calls Wad#settings.
   ##
   def load_dir(dir = nil)
-    dir = File.expand_path(dir || Project.settings())
+    dir = File.expand_path(dir || Wad.settings())
     unless dir == @_settings_dir
       raise "settings already loaded from #{_settings_dir}; attempted to re-load settings from #{dir}" unless _settings_dir.nil?
       @_settings_dir = dir
