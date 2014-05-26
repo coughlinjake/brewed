@@ -31,6 +31,8 @@ module Wad
     BINSTR = 'bin'.freeze
     LIBSTR = 'lib'.freeze
 
+    LOCAL_LIB = (Pathname.new(Dir.home) + 'usr/local/lib/Ruby').freeze
+
     ##
     # Determine the wad directory.
     #
@@ -61,9 +63,10 @@ module Wad
 
     def self.bootstrap()
       # add the real lib dir first so that wad local files can over-ride global files
+      add_load_path LOCAL_LIB if LOCAL_LIB.directory?
       add_load_path REAL_LIBDIR
       add_load_path LIBDIR
-      add_load_path WAD_DIR
+      add_load_path (WAD_DIR+LIBSTR)
     end
 
     def self.wad_relative(path)

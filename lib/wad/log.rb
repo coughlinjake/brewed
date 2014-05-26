@@ -111,10 +111,10 @@ class Log < Wad::Log
   # Returns whatever #yield returns.
   #
   # @example Log a variable name and its value
-  #    Log.Info 'BAD OBJECT:', bad_object
+  #    Log.Out 'BAD OBJECT:', bad_object
   #
   # @example Log message, indent 2 tabstops, process the block and decrease 2 tabstops
-  #    Log.Info(2, "Look, MA!  Just 1 call to Log#Info") {
+  #    Log.Out(2, "Look, MA!  Just 1 call to Log#Info") {
   #        call.so_and_so('DUDE!  that's phantsy!')
   #    }
   ##

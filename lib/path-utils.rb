@@ -38,6 +38,21 @@ class PathUtils
     end
     nil
   end
+  
+  def next_fname_version(fname, firstver = 'AAA')
+      fname    = Pathname.new fname
+      fndir    = fname.dirname
+      fnfname  = (fname.basename fname.extname).to_s
+      fnext    = fname.extname.to_s
+      ver      = nil
+      filename = fname
+      while filename.exists?
+        ver = (ver ? ver.succ : firstver)
+        filename = (fndir + (base + suffix)).subext fnext
+      end
+      filename
+  end
+ 
 
   ##
   # Generate the absolute path to the lockfile for the current process.
@@ -274,6 +289,7 @@ class PathUtils
         end
 
       rescue Timeout::Error => exp
+        Log.Out "EXCEPTION while locking path '#{fullpath}': #{Log.exception_to_string(exp)}"
         lock = nil
         rc   = nil
         raise exp
