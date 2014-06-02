@@ -1,17 +1,47 @@
 
+class Numeric;      def dup() self end;   end
+class Symbol;       def dup() self end;   end
+class TrueClass;    def dup() self end;   end
+class FalseClass;   def dup() self end;   end
+class NilClass;     def dup() self end;   end
+
 ##
 ## MutableHash
 ##
 class MutableHash < Hash
+  NOT_CLONABLE =
+      Hash[*( [Proc, IO].map { |c| [c,1] }.flatten )].freeze
+
   def initialize(hash)
-    # use either a MutableHash as is or a deep clone of a regular Hash.
-    # then copy its values into this MutableHash object
-    h = (hash.is_a? MutableHash) ? hash : self.class.deep_clone(hash)
-    h.each_pair { |k, v| self[k] = v }
-    self
+    raise ArgumentError, "expected a MutableHash or Hash; got #{hash.class.to_s}" unless
+        hash.is_a?(Hash)
+    hash.each_pair do |k, v|
+      self[k] = clone_value v
+    end
   end
-  def self.deep_clone(obj)
-    Marshal.load Marshal.dump(obj)
+
+  def clone_value(obj)
+    self.class.clone_value obj
+  end
+
+  def self.clone_value(obj)
+    rc = nil
+    case obj
+      when Hash
+        rc = {}
+        rc.keys.each { |key| rc[key] = clone_value obj[key] }
+
+      when Array
+        rc = obj.map { |i| clone_value i }
+
+      else
+        # i've tried to provide a feasible dup method for classes
+        # which i know are assholes.  this is probably too general,
+        # but if an object throws an exception when duped(), i
+        # hope i completely destroy the fucker!
+        rc = obj.dup rescue obj
+    end
+    rc
   end
 end
 
@@ -102,7 +132,7 @@ module Params
       if obj.respond_to? :call      then obj.call
       elsif mutable_source          then obj
       elsif obj.is_a? MutableHash   then obj
-      else                          MutableHash.deep_clone(obj)
+      else                          MutableHash.clone_value(obj)
       end
     end
 
@@ -150,8 +180,6 @@ module Params
     base.send :include, ClassMethods
     base.extend ClassMethods
   end
-
-  # PARAMS_MODIFIABLE = :__PARAMS_MODIFIABLE.freeze
 
   def [](property)
     propsym = property.to_sym

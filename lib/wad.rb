@@ -46,10 +46,11 @@ module Wad
     #    3. $0 ends with a FILENAME (ie the script)
     ##
     def self.find_wad_dir()
-      dir = (Pathname.getwd + $0).realpath
-      begin
+      dir = (ENV['WAD_DIR'] ? Pathname.new(ENV['WAD_DIR']) : Pathname.getwd).realpath
+      while (not dir.root?) and (not (dir + BINSTR).directory?) and (not (dir + LIBSTR).directory?)
         dir = dir.dirname
-      end until (dir + BINSTR).directory? and (dir + LIBSTR).directory?
+      end
+      raise "FAILED to locate project root starting from '#{Pathname.getwd}'" if dir.root?
       dir
     end
 
@@ -454,6 +455,7 @@ module Wad
   end
 end
 
+require 'wad/version'
 require 'wad/log'
 require 'wad/exceptions'
 require 'wad/settings'
