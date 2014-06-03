@@ -29,7 +29,7 @@ class MutableHash < Hash
     case obj
       when Hash
         rc = {}
-        rc.keys.each { |key| rc[key] = clone_value obj[key] }
+        obj.each_pair { |key, val| rc[key] = clone_value val }
 
       when Array
         rc = obj.map { |i| clone_value i }
@@ -84,9 +84,8 @@ module Params
       defaults_immutable = (defaults.is_a? MutableHash) ? true : false
 
       adamant = {}
-      if defaults.key? :adamant
-        adamant = defaults[:adamant]
-        adamant = MutableHash.new adamant unless defaults_immutable
+      if defaults[:adamant].is_hash?
+        adamant = defaults_immutable ? defaults[:adamant] : MutableHash.new(adamant)
       end
 
       defaults.each_pair do |key, default|
