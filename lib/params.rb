@@ -9,19 +9,12 @@ class NilClass;     def dup() self end;   end
 ## MutableHash
 ##
 class MutableHash < Hash
-  NOT_CLONABLE =
-      Hash[*( [Proc, IO].map { |c| [c,1] }.flatten )].freeze
 
   def initialize(hash)
     raise ArgumentError, "expected a MutableHash or Hash; got #{hash.class.to_s}" unless
         hash.is_a?(Hash)
-    hash.each_pair do |k, v|
-      self[k] = clone_value v
-    end
-  end
-
-  def clone_value(obj)
-    self.class.clone_value obj
+    klass = self.class
+    hash.each_pair { |key, value| self[key] = klass.clone_value value }
   end
 
   def self.clone_value(obj)
@@ -85,7 +78,7 @@ module Params
 
       adamant = {}
       if defaults[:adamant].is_hash?
-        adamant = defaults_immutable ? defaults[:adamant] : MutableHash.new(adamant)
+        adamant = defaults_immutable ? defaults[:adamant] : MutableHash.new(defaults[:adamant])
       end
 
       defaults.each_pair do |key, default|
