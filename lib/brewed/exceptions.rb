@@ -1,6 +1,6 @@
 require 'psych'
 
-module Wad
+module Brewed
 
   class AppError < StandardError
     def fatal?()        true    end

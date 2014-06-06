@@ -1,28 +1,28 @@
 # encoding: utf-8
 
-# = Wad.rb
+# = Brewed.rb
 #
 # == Environment Variables
 #
 # HOSTNAME
 # : name of host application is executing on
 #
-# *WAD_NAME*_MODE
+# *BREWED_NAME*_MODE
 # : `dev`, `test`, `production`
 #
 # == Application State
 #
 # State directory:
 #
-#      [HOME]/state/[HOSTNAME]/[WAD_NAME]/[WAD_MODE]
+#      [HOME]/state/[HOSTNAME]/[BREWED_NAME]/[BREWED_MODE]
 #
 
 require 'singleton'
 require 'pathname'
 
-module Wad
+module Brewed
 
-  class WadBase
+  class BrewedBase
     include Singleton
 
     LIBDIR = Pathname.new(__FILE__).dirname.expand_path.freeze
@@ -34,7 +34,7 @@ module Wad
     LOCAL_LIB = (Pathname.new(Dir.home) + 'usr/local/lib/Ruby').freeze
 
     ##
-    # Determine the wad directory.
+    # Determine the brewed directory.
     #
     # @note IMPORTANT ASSUMPTIONS:
     #
@@ -45,8 +45,8 @@ module Wad
     #
     #    3. $0 ends with a FILENAME (ie the script)
     ##
-    def self.find_wad_dir()
-      dir = (ENV['WAD_DIR'] ? Pathname.new(ENV['WAD_DIR']) : Pathname.getwd).realpath
+    def self.find_brewed_dir()
+      dir = (ENV['BREWED_DIR'] ? Pathname.new(ENV['BREWED_DIR']) : Pathname.getwd).realpath
       while (not dir.root?) and (not (dir + BINSTR).directory?) and (not (dir + LIBSTR).directory?)
         dir = dir.dirname
       end
@@ -54,7 +54,7 @@ module Wad
       dir
     end
 
-    WAD_DIR = find_wad_dir.freeze
+    BREWED_DIR = find_brewed_dir.freeze
 
     def self.add_load_path(dir)
       fulldir = Pathname.new(dir).expand_path
@@ -63,16 +63,16 @@ module Wad
     end
 
     def self.bootstrap()
-      # add the real lib dir first so that wad local files can over-ride global files
+      # add the real lib dir first so that brewed local files can over-ride global files
       add_load_path LOCAL_LIB if LOCAL_LIB.directory?
       add_load_path REAL_LIBDIR
       add_load_path LIBDIR
-      add_load_path (WAD_DIR+LIBSTR)
+      add_load_path (BREWED_DIR+LIBSTR)
     end
 
-    def self.wad_relative(path)
+    def self.brewed_relative(path)
       fullpath = Pathname.new(path).expand_path
-      fullpath.relative_path_from WAD_DIR
+      fullpath.relative_path_from BREWED_DIR
     end
 
     ##
@@ -82,7 +82,7 @@ module Wad
     #    +$LOAD_PATH+ will be updated to contain +submodule+'s dirname.
     ##
     def self.require_sub_modules(submodule)
-      submod_path = wad_relative submodule
+      submod_path = brewed_relative submodule
 
       # remove both the dirname and the file extension from this filename
       # 'app/models/tv.rb' => 'tv'
@@ -96,8 +96,8 @@ module Wad
       require mod_root.to_s
 
       # find all filenames matching the glob "#{submod_dir}/#{submod_base}/*.rb"
-      Dir.glob(WAD_DIR + mod_root + '*.{rb,rbo}').
-          map { |mabs| Pathname.new(mabs.chomp(File.extname(mabs))).relative_path_from(WAD_DIR) }.
+      Dir.glob(BREWED_DIR + mod_root + '*.{rb,rbo}').
+          map { |mabs| Pathname.new(mabs.chomp(File.extname(mabs))).relative_path_from(BREWED_DIR) }.
           uniq.each do |modname|
         #puts "requiring #{modname.to_s}"
         require modname.to_s
@@ -106,13 +106,13 @@ module Wad
   end
 
   ##
-  ## Bootstrap the wad's execution/load environment.
+  ## Bootstrap the brewed's execution/load environment.
   ##
-  WadBase.bootstrap
+  BrewedBase.bootstrap
 
   require 'data-utils'
 
-  class WadBase
+  class BrewedBase
     attr_accessor :dir, :script_name, :host, :home_dir,
                   :name, :run_mode,
                   :_log_root, :_log_filename,
@@ -127,16 +127,16 @@ module Wad
 
       @host = @state_dir = @run_mode = ''
 
-      # @note Wad assumes:
+      # @note Brewed assumes:
       #    * it's located somewhere in lib directory tree,
       #    * the root of that **lib** tree is a directory named "lib"
-      #    * there are no intermediate directories between "lib" and wad.rb also named "lib"
-      #    * the parent of "lib" is the root of the wad
+      #    * there are no intermediate directories between "lib" and brewed.rb also named "lib"
+      #    * the parent of "lib" is the root of the brewed
       #
       # therefore, work our way backward back up the directory tree until we
       # reach a directory with a child dir named "lib"
-      @dir = WAD_DIR
-      @name = WAD_DIR.basename.to_s.downcase
+      @dir = BREWED_DIR
+      @name = BREWED_DIR.basename.to_s.downcase
 
       # set the host name
       hostname
@@ -150,7 +150,7 @@ module Wad
         # "global" settings dir
         @run_mode = :disabled
 
-        @settings = [WAD_DIR, @host.is_str? ? @host : [], $PROGRAM_NAME].flatten.reduce :+
+        @settings = [BREWED_DIR, @host.is_str? ? @host : [], $PROGRAM_NAME].flatten.reduce :+
 
         @_log_root = home_dir + 'Library/Logs'
         raise "invalid log_root: '#{_log_root}" unless _log_root.directory?
@@ -163,8 +163,8 @@ module Wad
         # ../@name/
         #    @name/public
         #    @name/settings
-        @_public = WAD_DIR + 'public'
-        @settings = WAD_DIR + 'settings'
+        @_public = BREWED_DIR + 'public'
+        @settings = BREWED_DIR + 'settings'
 
         # @note set_run_mode also sets state directories
         set_run_mode
@@ -177,7 +177,7 @@ module Wad
     # Return an absolute path within the working directory.
     #
     # The working directory is determined:
-    #   * value of WAD_WORKING_DIR env var
+    #   * value of BREWED_WORKING_DIR env var
     #   * When run_mode is :daemon, the working dir is state_dir.
     #   * Otherwise, the current directory.
     #
@@ -225,7 +225,7 @@ module Wad
     end
 
     ##
-    # Provide the absolute path to this Wad's lib dir.
+    # Provide the absolute path to this Brewed's lib dir.
     #
     # @return [String]
     ##
@@ -236,12 +236,12 @@ module Wad
     ##
     # Sets the current application run mode.
     #
-    # Use {Wad#run_mode} to query the application's run mode.
+    # Use {Brewed#run_mode} to query the application's run mode.
     #
     # @note During initialization (probably before the application code starts),
     #    the run mode is set from the value of the application's run mode
     #    environment variable.  The variable name is constructed by uppercasing
-    #    the application name (see {Wad#name}) and appending '_MODE'.
+    #    the application name (see {Brewed#name}) and appending '_MODE'.
     #    The value of this environment variable should be one of:
     #    'production', 'dev', 'test'.
     #
@@ -252,14 +252,14 @@ module Wad
     #    chance to over-ride the mode.
     #
     # @example Set the application run mode
-    #    Wad.set_mode(:test)
+    #    Brewed.set_mode(:test)
     # @example Query the application's run mode
-    #    mode = Wad.run_mode
+    #    mode = Brewed.run_mode
     ##
     def set_run_mode(mode = nil)
       env_var_name = nil
       if @run_mode.empty?
-        raise "too soon to set wad_mode" unless mode.nil?
+        raise "too soon to set brewed_mode" unless mode.nil?
 
         # FIXME|to protect each run mode's database from stomping on the
         # others, the datamapper database is stored in a directory
@@ -288,8 +288,8 @@ module Wad
           @state_dir = _state_root + run_mode.to_s
         when :disabled, :none
           @run_mode = :disabled
-          @_state_root = WAD_DIR
-          @state_dir = WAD_DIR
+          @_state_root = BREWED_DIR
+          @state_dir = BREWED_DIR
         else
           raise "invalid mode: '#{mode.to_s}'"
       end
@@ -312,7 +312,7 @@ module Wad
     # @return [String]
     #
     # @example Test if we're running on host 'bigmac'
-    #     if 'bigmac' == Wad.hostname()
+    #     if 'bigmac' == Brewed.hostname()
     #
     ##
     def hostname()
@@ -330,21 +330,21 @@ module Wad
     end
 
     ##
-    # Provide an absolute pathname within the current wad's directory
+    # Provide an absolute pathname within the current brewed's directory
     # tree when provided relative path components.
     #
     # @param path [String]
     # @return [String]
     #
     # @example Get path to 'public' files
-    #    public_dir = Wad.path('public')
+    #    public_dir = Brewed.path('public')
     ##
     def path(*path)
-      [WAD_DIR, *path].reduce(:+)
+      [BREWED_DIR, *path].reduce(:+)
     end
 
     ##
-    # Provide an absolute pathname within the wad's public directory tree.
+    # Provide an absolute pathname within the brewed's public directory tree.
     #
     # @param path [Array<String>]
     # @return [String]
@@ -354,7 +354,7 @@ module Wad
     end
 
     ##
-    # Wad.home(dir, ...)
+    # Brewed.home(dir, ...)
     #
     ##
     def home(*path)
@@ -373,17 +373,17 @@ module Wad
     # Provide the absolute path to the root of the state directories.
     #
     # @note  THIS SHOULD BE CONSIDERED AN INTERNAL METHOD!  Use
-    #   {Wad#state}.
+    #   {Brewed#state}.
     #
     # @example Determine database filename
-    #    dbfn = Wad.state('database.sqlite')
+    #    dbfn = Brewed.state('database.sqlite')
     ##
     def state_root(*path)
       [_state_root, *path].reduce(:+)
     end
 
     ##
-    # Provide an absolute path within the current Wad's state dir.
+    # Provide an absolute path within the current Brewed's state dir.
     #
     # @note The state directory depends on the current run mode.  This
     #    allows the application to store state during development which
@@ -391,7 +391,7 @@ module Wad
     #    mode.
     #
     # @example Determine database filename
-    #    dbfn = Wad.state('database.sqlite')
+    #    dbfn = Brewed.state('database.sqlite')
     ##
     def state(*path)
       [state_dir, *path].reduce(:+)
@@ -427,35 +427,35 @@ end
 
 
 # class methods for convenient access to the Singleton
-module Wad
-  def self.libdir()       WadBase.instance.libdir            end
-  def self.dir()          WadBase.instance.dir               end
-  def self.name()         WadBase.instance.name              end
-  def self.home_dir()     WadBase.instance.home_dir          end
-  def self.host()         WadBase.instance.host              end
-  def self.state_dir()    WadBase.instance.state_dir         end
-  def self.run_mode()     WadBase.instance.run_mode          end
-  def self.hostname()     WadBase.instance.hostname          end
-  def self.set_run_mode(mode = nil) WadBase.instance.set_run_mode(mode) end
-  def self.working_dir(*path)       WadBase.instance.working_dir(*path) end
-  def self.path(*path)    WadBase.instance.path(*path)       end
-  def self.home(*path)    WadBase.instance.home(*path)       end
-  def self.settings()     WadBase.instance.settings          end
-  def self.log(*path)     WadBase.instance.log(*path)        end
-  def self.state(*path)   WadBase.instance.state(*path)      end
-  def self.public(*path)  WadBase.instance.public(*path)     end
+module Brewed
+  def self.libdir()       BrewedBase.instance.libdir            end
+  def self.dir()          BrewedBase.instance.dir               end
+  def self.name()         BrewedBase.instance.name              end
+  def self.home_dir()     BrewedBase.instance.home_dir          end
+  def self.host()         BrewedBase.instance.host              end
+  def self.state_dir()    BrewedBase.instance.state_dir         end
+  def self.run_mode()     BrewedBase.instance.run_mode          end
+  def self.hostname()     BrewedBase.instance.hostname          end
+  def self.set_run_mode(mode = nil) BrewedBase.instance.set_run_mode(mode) end
+  def self.working_dir(*path)       BrewedBase.instance.working_dir(*path) end
+  def self.path(*path)    BrewedBase.instance.path(*path)       end
+  def self.home(*path)    BrewedBase.instance.home(*path)       end
+  def self.settings()     BrewedBase.instance.settings          end
+  def self.log(*path)     BrewedBase.instance.log(*path)        end
+  def self.state(*path)   BrewedBase.instance.state(*path)      end
+  def self.public(*path)  BrewedBase.instance.public(*path)     end
 
-  def self.lock_dir()     WadBase.instance.lock_dir          end
+  def self.lock_dir()     BrewedBase.instance.lock_dir          end
   def self.lock_fname(*parms)
-    WadBase.instance.lock_fname *parms
+    BrewedBase.instance.lock_fname *parms
   end
 
   def self.expand_variables(*parms)
-    WadBase.instance.expand_variables(*parms)
+    BrewedBase.instance.expand_variables(*parms)
   end
 end
 
-require 'wad/version'
-require 'wad/log'
-require 'wad/exceptions'
-require 'wad/settings'
+require 'brewed/version'
+require 'brewed/log'
+require 'brewed/exceptions'
+require 'brewed/settings'

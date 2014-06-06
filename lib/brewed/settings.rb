@@ -4,7 +4,7 @@
 
 require 'psych'
 
-require 'wad'
+require 'brewed'
 require 'data-utils/hash'
 
 module Settings
@@ -16,10 +16,10 @@ module Settings
 
   ##
   # Load all of the settings files in the specified directory.  If no
-  # directory is specified, calls Wad#settings.
+  # directory is specified, calls Brewed#settings.
   ##
   def load_dir(dir = nil)
-    dir = File.expand_path(dir || Wad.settings())
+    dir = File.expand_path(dir || Brewed.settings())
     unless dir == @_settings_dir
       raise "settings already loaded from #{_settings_dir}; attempted to re-load settings from #{dir}" unless _settings_dir.nil?
       @_settings_dir = dir

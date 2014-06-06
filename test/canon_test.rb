@@ -5,7 +5,7 @@
 
 require_relative './test_helper'
 
-require_relative '../lib/wad'
+require_relative '../lib/brewed'
 
 require 'data-utils/canonical'
 

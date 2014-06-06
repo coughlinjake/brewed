@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-module Wad
+module Brewed
   ##
   ## == PrettyPrint ==
   ##

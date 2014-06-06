@@ -1,16 +1,16 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'wad/version'
+require 'brewed/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'wad'
-  spec.version       = Wad::VERSION
+  spec.name          = 'brewed'
+  spec.version       = Brewed::VERSION
   spec.authors       = ['Jake Coughlin']
   spec.email         = ['coughlin.jake@gmail.com']
-  spec.summary       = %q{Scrunch your source into a wad.}
-  spec.description   = %q{"Project" was taken... as was "bale"... so now I write wads.}
-  spec.homepage      = 'https://github.com/coughlinjake/project'
+  spec.summary       = %q{Brew your ingredients together with some core essentials!}
+  spec.description   = %q{"Project" was taken... as was "bale"... so now I brew.}
+  spec.homepage      = 'https://github.com/coughlinjake/brewed'
   spec.license       = 'MIT'
 
   spec.files         = `git ls-files -z`.split("\x0")

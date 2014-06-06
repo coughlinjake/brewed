@@ -2,7 +2,7 @@
 
 require 'date-utils'
 
-module Wad
+module Brewed
   ##
   ## == LogDest ==
   ##

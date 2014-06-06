@@ -5,7 +5,7 @@ require 'time'
 require 'pathname'
 require 'psych'
 
-module Wad
+module Brewed
   TAB = "\t".freeze
   NL = "\n".freeze
   EMPTY = ''.freeze
@@ -30,15 +30,15 @@ module Wad
 end
 
 
-require 'wad/log/pretty'
-require 'wad/log/dest'
+require 'brewed/log/pretty'
+require 'brewed/log/dest'
 # require 'log/redirected'
-require 'wad/log/log'
+require 'brewed/log/log'
 
 ##
 ## Log Interface
 ##
-class Log < Wad::Log
+class Log < Brewed::Log
   include Singleton
 
   def initialize()

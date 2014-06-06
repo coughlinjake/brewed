@@ -25,16 +25,16 @@ module Canonical
       0x2003 => ' ',		# EM SPACE
       0x2008 => ' ',		# PUNCTUATION SPACE
       0x2009 => ' ',		# THIN SPACE
-      0x2013 => '--',   # NDASH
-      0x2014 => '--',   # MDASH
-      0x2015 => '--',   # HORIZONTAL BAR
-      0x2018 => "'",    # LEFT SINGLE QUOTE
-      0x2019 => "'",    # RIGHT SINGLE QUOTE
-      0x201B => "'",    # REVERSED SINGLE QUOTE
-      0x201C => '"',    # LEFT DOUBLE QUOTE
-      0x201D => '"',    # RIGHT DOUBLE QUOTE
-      0x201F => '"',    # REVERSED DOUBLE QUOTE
-      0x2026 => '...',  # HORIZONTAL ELLIPSIS
+      0x2013 => '--',       # NDASH
+      0x2014 => '--',       # MDASH
+      0x2015 => '--',       # HORIZONTAL BAR
+      0x2018 => "'",        # LEFT SINGLE QUOTE
+      0x2019 => "'",        # RIGHT SINGLE QUOTE
+      0x201B => "'",        # REVERSED SINGLE QUOTE
+      0x201C => '"',        # LEFT DOUBLE QUOTE
+      0x201D => '"',        # RIGHT DOUBLE QUOTE
+      0x201F => '"',        # REVERSED DOUBLE QUOTE
+      0x2026 => '...',      # HORIZONTAL ELLIPSIS
       0x2032 => "'",		# PRIME (minutes, feet)
       0x2033 => '"',		# DOUBLE PRIME (seconds, inches)
   }.freeze
