@@ -54,7 +54,18 @@ module Brewed
       dir
     end
 
-    BREWED_DIR = find_brewed_dir.freeze
+    BREWED_DIR       = find_brewed_dir.freeze
+
+    # Brewed is supposed to provide the execution environment as an abtraction
+    # for a project.  Sometimes a project doesn't have a clear box to live in.
+    # These situations can be configured through the following environment
+    # variables:
+    BREWED_NAME_VAR  = 'BREWED'.freeze
+    BREWED_DIR_VAR   = 'BREWED_ROOT'.freeze
+    BREWED_MODE_VAR  = 'BREWED_MODE'.freeze
+    BREWED_HOST_VAR  = 'BREWED_HOST'.freeze
+    BREWED_LOG_VAR   = 'BREWED_LOG'.freeze
+    BREWED_STATE_VAR = 'BREWED_STATE'.freeze
 
     def self.add_load_path(dir)
       fulldir = Pathname.new(dir).expand_path
@@ -68,6 +79,7 @@ module Brewed
       add_load_path REAL_LIBDIR
       add_load_path LIBDIR
       add_load_path (BREWED_DIR+LIBSTR)
+      add_load_path BREWED_DIR
     end
 
     def self.brewed_relative(path)
@@ -125,8 +137,6 @@ module Brewed
     def initialize()
       @script_name = Pathname.new($0 || 'UNKNOWN_SCRIPT').basename.to_s
 
-      @host = @state_dir = @run_mode = ''
-
       # @note Brewed assumes:
       #    * it's located somewhere in lib directory tree,
       #    * the root of that **lib** tree is a directory named "lib"
@@ -135,8 +145,12 @@ module Brewed
       #
       # therefore, work our way backward back up the directory tree until we
       # reach a directory with a child dir named "lib"
-      @dir = BREWED_DIR
-      @name = BREWED_DIR.basename.to_s.downcase
+      @dir  = Pathname.new( ENV[BREWED_DIR_VAR]  || BREWED_DIR )
+      @name = ENV[BREWED_NAME_VAR] || BREWED_DIR.basename.to_s.downcase
+
+      @host      = ENV[BREWED_HOST_VAR]
+      @state_dir = ENV[BREWED_STATE_VAR]
+      @run_mode  = ENV[BREWED_MODE_VAR]
 
       # set the host name
       hostname
@@ -163,8 +177,8 @@ module Brewed
         # ../@name/
         #    @name/public
         #    @name/settings
-        @_public = BREWED_DIR + 'public'
-        @settings = BREWED_DIR + 'settings'
+        @_public  = @dir + 'public'
+        @settings = @dir + 'settings'
 
         # @note set_run_mode also sets state directories
         set_run_mode
@@ -258,7 +272,7 @@ module Brewed
     ##
     def set_run_mode(mode = nil)
       env_var_name = nil
-      if @run_mode.empty?
+      unless @run_mode.is_str?
         raise "too soon to set brewed_mode" unless mode.nil?
 
         # FIXME|to protect each run mode's database from stomping on the
@@ -272,9 +286,14 @@ module Brewed
         # ALL of this happens when the script is loaded... LONG before
         # we can process command-line args...
 
-        env_var_name = "#{@name.upcase}_MODE"
+        env_var_name =
+            ENV[BREWED_MODE_VAR].is_str? ?
+                BREWED_MODE_VAR : "#{@name.upcase}_MODE"
+
         mode = ENV[env_var_name]
-        raise "ENV[#{env_var_name}] is MISSING; it must be 'dev', 'test' or 'production'" unless mode.is_str?
+        unless mode.is_str?
+          raise "ENV[#{env_var_name}] is MISSING; it must be 'dev', 'test' or 'production'"
+        end
       end
 
       mode = mode.to_s.downcase.strip.to_sym
@@ -283,13 +302,13 @@ module Brewed
 
       case mode
         when :development, :test, :production, :daemon
-          @run_mode = mode
-          @_state_root = [home_dir, 'state', host.to_s, name].reduce :+
-          @state_dir = _state_root + run_mode.to_s
+          @run_mode    = mode
+          @_state_root ||= [home_dir, 'state', host.to_s, name].reduce :+
+          @state_dir   ||= _state_root + run_mode.to_s
         when :disabled, :none
-          @run_mode = :disabled
-          @_state_root = BREWED_DIR
-          @state_dir = BREWED_DIR
+          @run_mode    = :disabled
+          @_state_root ||= dir
+          @state_dir   ||= dir
         else
           raise "invalid mode: '#{mode.to_s}'"
       end
@@ -340,7 +359,7 @@ module Brewed
     #    public_dir = Brewed.path('public')
     ##
     def path(*path)
-      [BREWED_DIR, *path].reduce(:+)
+      [dir, *path].reduce(:+)
     end
 
     ##
@@ -428,31 +447,30 @@ end
 
 # class methods for convenient access to the Singleton
 module Brewed
-  def self.libdir()       BrewedBase.instance.libdir            end
-  def self.dir()          BrewedBase.instance.dir               end
-  def self.name()         BrewedBase.instance.name              end
-  def self.home_dir()     BrewedBase.instance.home_dir          end
-  def self.host()         BrewedBase.instance.host              end
-  def self.state_dir()    BrewedBase.instance.state_dir         end
-  def self.run_mode()     BrewedBase.instance.run_mode          end
-  def self.hostname()     BrewedBase.instance.hostname          end
-  def self.set_run_mode(mode = nil) BrewedBase.instance.set_run_mode(mode) end
-  def self.working_dir(*path)       BrewedBase.instance.working_dir(*path) end
-  def self.path(*path)    BrewedBase.instance.path(*path)       end
-  def self.home(*path)    BrewedBase.instance.home(*path)       end
-  def self.settings()     BrewedBase.instance.settings          end
-  def self.log(*path)     BrewedBase.instance.log(*path)        end
-  def self.state(*path)   BrewedBase.instance.state(*path)      end
-  def self.public(*path)  BrewedBase.instance.public(*path)     end
+  def self.add_load_path(*parms)            BrewedBase.add_load_path(*parms)        end
+  def self.require_sub_modules(*parms)      BrewedBase.require_sub_modules(*parms)  end
 
-  def self.lock_dir()     BrewedBase.instance.lock_dir          end
-  def self.lock_fname(*parms)
-    BrewedBase.instance.lock_fname *parms
-  end
+  def self.libdir()                         BrewedBase.instance.libdir            end
+  def self.dir()                            BrewedBase.instance.dir               end
+  def self.name()                           BrewedBase.instance.name              end
+  def self.home_dir()                       BrewedBase.instance.home_dir          end
+  def self.host()                           BrewedBase.instance.host              end
+  def self.state_dir()                      BrewedBase.instance.state_dir         end
+  def self.run_mode()                       BrewedBase.instance.run_mode          end
+  def self.hostname()                       BrewedBase.instance.hostname          end
+  def self.set_run_mode(mode = nil)         BrewedBase.instance.set_run_mode(mode) end
+  def self.working_dir(*path)               BrewedBase.instance.working_dir(*path) end
+  def self.path(*path)                      BrewedBase.instance.path(*path)       end
+  def self.home(*path)                      BrewedBase.instance.home(*path)       end
+  def self.settings()                       BrewedBase.instance.settings          end
+  def self.log(*path)                       BrewedBase.instance.log(*path)        end
+  def self.state(*path)                     BrewedBase.instance.state(*path)      end
+  def self.public(*path)                    BrewedBase.instance.public(*path)     end
 
-  def self.expand_variables(*parms)
-    BrewedBase.instance.expand_variables(*parms)
-  end
+  def self.lock_dir()                       BrewedBase.instance.lock_dir                    end
+  def self.lock_fname(*parms)               BrewedBase.instance.lock_fname *parms           end
+
+  def self.expand_variables(*parms)         BrewedBase.instance.expand_variables(*parms)    end
 end
 
 require 'brewed/version'
