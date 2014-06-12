@@ -170,7 +170,13 @@ class DateUtils
   def self.date_tod(dt, tm)
     DateTime.parse "#{fmt_date(dt)} #{tm}"
   end
-
+  
+  ##
+  # Return the current datetime as YYYY-MM-DD HH:mm.
+  ##
+  def self.now_str()               _format_dt DateTime.now, DT_TM   end
+  def self.today_str()             _format_dt DateTime.now, Y_M_D   end
+      
   ##
   # Format the provided DateTime object for display in page.
   #
