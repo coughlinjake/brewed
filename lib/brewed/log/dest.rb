@@ -12,7 +12,7 @@ module Brewed
   ## to an active destination (ie file handle).  The LogDest object also
   ## manages its own indentation and folding state.
   ##
-  class LogDest
+  class BrewedLogDest
     attr_reader   :id, :level
     attr_accessor :disabled, :redirected
     attr_accessor :fname, :fh, :fhmustclose

@@ -38,7 +38,7 @@ require 'brewed/log/log'
 ##
 ## Log Interface
 ##
-class Log < Brewed::Log
+class Log < ::Brewed::BrewedLog
   include Singleton
 
   def initialize()

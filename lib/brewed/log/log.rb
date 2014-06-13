@@ -2,9 +2,9 @@
 
 module Brewed
   ##
-  ## == Log ==
+  ## == BrewedLog ==
   ##
-  class Log
+  class BrewedLog
     attr_reader   :log_index, :out_logs, :debug_logs, :failures
 
     def initialize()
@@ -31,7 +31,7 @@ module Brewed
       dest = options[:dest]
       destid  = nil
       begin
-        dest = LogDest.new options if dest.nil?
+        dest = BrewedLogDest.new options if dest.nil?
 
         destid  = dest.id
 
