@@ -339,16 +339,14 @@ module Brewed
     ##
     def hostname()
       unless @host.is_str?
-        hn = ENV['HOSTNAME']
-        hn = `/bin/hostname` unless hn.is_str?
-        raise "Failed to determine current HOSTNAME" unless hn.is_str?
+        @host = ENV['HOSTNAME']
+        @host = `/bin/hostname` unless @host.is_str?
+        raise "Failed to determine current HOSTNAME" unless @host.is_str?
 
-        hn = hn.downcase.sub(/\..*$/, '').strip
-        raise "Failed to determine current HOSTNAME" unless hn.is_str?
-
-        @host = hn.to_sym
+        @host = @host.downcase.sub(/\..*$/, '').strip
+        raise "Failed to determine current HOSTNAME" unless @host.is_str?
       end
-      @host
+      @host = @host.to_sym
     end
 
     ##

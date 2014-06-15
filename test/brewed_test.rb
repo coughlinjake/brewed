@@ -10,16 +10,16 @@ require 'brewed'
 # MiniTest::Reporters.use!
 
 class Brewed_Tests < MiniTest::Test
-  TEST_HOME          = '/Users/jakec'
-  TEST_HOST          = 'bigmac'
+  TEST_HOME          = Pathname.new( Dir.home )
+  TEST_HOST          = :bigmac
   TEST_MODE          = ENV['BREWED_MODE'].to_sym
   TEST_BREWED_NAME   = 'brewed'
 
-  TEST_BREWED_ROOT      = "#{TEST_HOME}/UNISON/src/ruby/#{TEST_BREWED_NAME}"
-  TEST_BREWED_LIB       = "#{TEST_HOME}/UNISON/src/ruby/#{TEST_BREWED_NAME}/lib"
-  TEST_BREWED_STATEROOT = "#{TEST_HOME}/state/#{TEST_HOST}/#{TEST_BREWED_NAME.downcase}"
-  TEST_BREWED_LOG       = "#{TEST_BREWED_STATEROOT}"
-  TEST_BREWED_STATE     = "#{TEST_BREWED_STATEROOT}/#{TEST_MODE}"
+  TEST_BREWED_ROOT      = Pathname.new(__FILE__).dirname.dirname
+  TEST_BREWED_LIB       = TEST_BREWED_ROOT + 'lib'
+  TEST_BREWED_STATEROOT = TEST_HOME + 'state' + TEST_HOST.to_s + TEST_BREWED_NAME.downcase
+  TEST_BREWED_LOG       = TEST_BREWED_STATEROOT + TEST_MODE.to_s
+  TEST_BREWED_STATE     = TEST_BREWED_STATEROOT + TEST_MODE.to_s
 
   def test_libdir()
    # puts "Brewed.libdir: '#{Brewed.libdir}'"
@@ -48,7 +48,7 @@ class Brewed_Tests < MiniTest::Test
                  "Brewed.instance.libdir = '#{TEST_BREWED_LIB}'"
   end
   def test_state_root()
-    assert_equal Brewed.state_root,
+    assert_equal Brewed::BrewedBase.instance.state_root,
                  TEST_BREWED_STATEROOT,
                  "Brewed.instance.state_root = '#{TEST_BREWED_STATEROOT}'"
   end
