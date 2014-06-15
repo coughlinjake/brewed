@@ -170,13 +170,29 @@ class DateUtils
   def self.date_tod(dt, tm)
     DateTime.parse "#{fmt_date(dt)} #{tm}"
   end
-  
+
   ##
   # Return the current datetime as YYYY-MM-DD HH:mm.
   ##
   def self.now_str()               _format_dt DateTime.now, DT_TM   end
   def self.today_str()             _format_dt DateTime.now, Y_M_D   end
-      
+
+  ##
+  # Convert a UTC datetime to local time.
+  #
+  # @note THIS METHOD ONLY ACCEPTS AND RETURNS TIME OBJECTS!
+  #
+  # @param dt   [Time]
+  # @return     [Time]
+  ##
+  def self.from_utc(dt)
+    case dt
+      when Time   then  dt.localtime
+      else
+        raise ArgumentError, "converting #{dt.class.to_s} from UTC not implemented"
+    end
+  end
+
   ##
   # Format the provided DateTime object for display in page.
   #
