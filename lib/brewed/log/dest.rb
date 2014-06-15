@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-require 'date-utils'
+require 'brewed/date'
 
 module Brewed
   ##
@@ -153,7 +153,7 @@ module Brewed
 
     def _bol(border)
       [
-          timestamp ? "#{DateUtils.fmt_dt(DateTime.now)}| " : EMPTY,
+          timestamp ? "#{::Brewed::Date.fmt_dt(DateTime.now)}| " : EMPTY,
           indent_str,
           border ? BORDER : EMPTY,
       ].join(EMPTY)

@@ -25,8 +25,7 @@
 
 require 'pathname'
 
-require 'path-utils'
-
+require 'brewed/path/lock'
 require 'brewed/settings'
 require 'brewed/env/ruby'
 
@@ -49,7 +48,7 @@ module Brewed
         @argv = []
 
         @env =
-            Brewed::Env::Ruby.project_env :PATH => [
+            ::Brewed::Env::Ruby.project_env :PATH => [
                 Brewed.path('bin'),
             ]
 
@@ -142,7 +141,7 @@ module Brewed
           if self.respond_to? :application_lock
             applock = self.application_lock
             Log.Debug("[LOCKING '#{applock}'...]") {
-              PathUtils.lock_file(applock) do
+              ::Brewed::Path::Lock.lock_file(applock) do
                 rc = _application_run
               end
             }

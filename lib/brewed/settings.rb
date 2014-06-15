@@ -5,7 +5,7 @@
 require 'psych'
 
 require 'brewed'
-require 'data-utils/hash'
+require 'brewed/data/hash'
 
 module Settings
   extend self # singleton

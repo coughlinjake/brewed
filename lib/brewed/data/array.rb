@@ -10,15 +10,15 @@ class Array
   #
   # @return [Array]
   ##
-  def map_values
-    raise "a block is required" unless block_given?
-    values = []
-    self.each do |item|
-      v = yield item
-      values << v unless v.nil? or v == false
-    end
-    values
-  end
+  # def map_values
+  #   raise "a block is required" unless block_given?
+  #   values = []
+  #   self.each do |item|
+  #     v = yield item
+  #     values << v unless v.nil? or v == false
+  #   end
+  #   values
+  # end
 
   ##
   # Construct a new Array by calling a Proc on every item

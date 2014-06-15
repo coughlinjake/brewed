@@ -8,7 +8,7 @@
 #         # process your config ...
 #       end
 #    end
-# 
+#
 # To configure MyClass:
 #
 #    MyClass.new.init do |c|
@@ -18,18 +18,24 @@
 
 require 'ostruct'
 
-class ConfigStruct < OpenStruct
-  def self.block_to_hash(block=nil)
-    config = self.new
-    if block
-      block.call(config)
-      config.to_hash
-    else
-      {}
+require 'brewed'
+
+module Brewed
+
+  class ConfigStruct < OpenStruct
+    def self.block_to_hash(block=nil)
+      config = self.new
+      if block
+        block.call(config)
+        config.to_hash
+      else
+        {}
+      end
+    end
+
+    def to_hash
+      @table
     end
   end
 
-  def to_hash
-    @table
-  end
 end

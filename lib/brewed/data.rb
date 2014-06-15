@@ -1,5 +1,5 @@
 ##
-## data-utils.rb
+## brewed/data.rb
 ##
 ## Extend Object by providing some useful predicates.
 ##
@@ -104,7 +104,7 @@ end
 
 class String
   EMPTY = ' '.freeze
-    
+
   TRUE_PAT  = %r[(?:^|\b)(?:true|t|yes|y|1)(?:\b|$)]i.freeze
   FALSE_PAT = %r[(?:^|\b)(?:false|f|no|n|0)(?:\b|$)]i.freeze
 
@@ -150,18 +150,18 @@ class String
     indent = scan(/^[ \t]*(?=\S)/).min.try(:size) || 0
     gsub(/^[ \t]{#{indent}}/, '')
   end
-  
+
   def expand_tabs(tab_stops = 4)
     self.gsub(/([^\t\n]*)\t/) do
       $1 + EMPTY * (tab_stops - ($1.size % tab_stops))
     end
   end
-  
+
   def expand_tabs!(tab_stops = 4)
     self.gsub!(/([^\t\n]*)\t/) do
       $1 + EMPTY * (tab_stops - ($1.size % tab_stops))
     end
-  end   
+  end
 end
 
 class Symbol
@@ -221,36 +221,38 @@ class Pathname
   end
 end
 
-module ParamUtils
-  ##
-  # Use the [key,value] pairs of a Hash to update this object's instance variables.
-  # Only instance variables with an assignment accessor are updated.
-  #
-  # @param hash [Hash]
-  ##
-  def update_from_hash!(hash)
-    hash.each_pair do |k, v|
-      writer = :"#{k}="
-      self.send writer, v if self.respond_to? writer
-    end
-  end
-
-  ##
-  # Construct a Hash which maps this object's instance variables to their values.
-  #
-  # @return [Hash]
-  ##
-  def as_hash(vars = nil)
-    hash = {}
-    if vars.nil?
-      instance_variables.each { |ivar| hash[ivar[1..-1].to_sym] = instance_variable_get ivar }
-    else
-      vars.each do |sym|
-        ivar = :"@#{sym}"
-        hash[sym] = instance_variable_get(ivar) if instance_variable_defined? ivar
+module Brewed
+  module ParamUtils
+    ##
+    # Use the [key,value] pairs of a Hash to update this object's instance variables.
+    # Only instance variables with an assignment accessor are updated.
+    #
+    # @param hash [Hash]
+    ##
+    def update_from_hash!(hash)
+      hash.each_pair do |k, v|
+        writer = :"#{k}="
+        self.send writer, v if self.respond_to? writer
       end
     end
-    hash
+
+    ##
+    # Construct a Hash which maps this object's instance variables to their values.
+    #
+    # @return [Hash]
+    ##
+    def as_hash(vars = nil)
+      hash = {}
+      if vars.nil?
+        instance_variables.each { |ivar| hash[ivar[1..-1].to_sym] = instance_variable_get ivar }
+      else
+        vars.each do |sym|
+          ivar = :"@#{sym}"
+          hash[sym] = instance_variable_get(ivar) if instance_variable_defined? ivar
+        end
+      end
+      hash
+    end
   end
 end
 
@@ -298,38 +300,43 @@ class Array
 
 end
 
-class HashInit < Hash
-  ##
-  # Verify that every value in a Hash is defined; report all keys with
-  # missing values.
-  #
-  # @param hash [Hash]
-  #    the hash to verify
-  #
-  # @return [Hash]
-  #    the hash passed as a parameter is returned unaltered
-  ##
-  def self.not_missing(hash)
-    missing = hash.select { |k, v| v.no_value? }
-    raise "values are required but missing for the variables: #{missing.keys.join(', ')}" unless missing.empty?
-    hash
+module Brewed
+  module Data
+    ##
+    # Verify that every value in a Hash is defined; report all keys with
+    # missing values.
+    #
+    # @param hash [Hash]
+    #    the hash to verify
+    #
+    # @return [Hash]
+    #    the hash passed as a parameter is returned unaltered
+    ##
+    def self.not_missing(hash)
+      missing = hash.select { |k, v| v.no_value? }
+      raise "values are required but missing for the variables: #{missing.keys.join(', ')}" unless missing.empty?
+      hash
+    end
   end
 end
+
 
 ##
 ## Utilities shared by all data types.
 ##
-class DataUtils
-  ##
-  # Perform a deep-clone of an object by calling Marshal.dump() and
-  # Marshal.load().
-  #
-  # @note The only reason this method is in its own class is because I
-  #    can never remember the incantation.
-  #
-  ##
-  def self.deep_clone(obj)
-    Marshal.load Marshal.dump(obj)
+module Brewed
+  module Data
+    ##
+    # Perform a deep-clone of an object by calling Marshal.dump() and
+    # Marshal.load().
+    #
+    # @note The only reason this method is in its own class is because I
+    #    can never remember the incantation.
+    #
+    ##
+    def self.deep_clone(obj)
+      Marshal.load Marshal.dump(obj)
+    end
   end
 end
 

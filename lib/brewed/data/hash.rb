@@ -1,11 +1,12 @@
 ##
-## data-utils/hash.rb
+## data/hash.rb
 ##
 
-require 'data-utils/deep_symbolize'
+require 'brewed'
+require 'brewed/data/deep_symbolize'
 
 class Hash
-  include DeepSymbolizable
+  include ::Brewed::DeepSymbolizable
 
   ##
   # Alias keys to names
