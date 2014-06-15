@@ -122,7 +122,8 @@ module Brewed
   ##
   BrewedBase.bootstrap
 
-  require 'data-utils'
+  require 'brewed/version'
+  require 'brewed/data'
 
   class BrewedBase
     attr_accessor :dir, :script_name, :host, :home_dir,
@@ -444,7 +445,6 @@ module Brewed
   end
 end
 
-
 # class methods for convenient access to the Singleton
 module Brewed
   def self.add_load_path(*parms)            BrewedBase.add_load_path(*parms)        end
@@ -473,7 +473,6 @@ module Brewed
   def self.expand_variables(*parms)         BrewedBase.instance.expand_variables(*parms)    end
 end
 
-require 'brewed/version'
 require 'brewed/log'
 require 'brewed/exceptions'
 require 'brewed/settings'
