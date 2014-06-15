@@ -5,17 +5,13 @@ require_relative './test_helper'
 # the run mode must be set BEFORE we require project
 require 'brewed'
 
-# require 'minitest/autorun'
-# require 'minitest/reporters'
-# MiniTest::Reporters.use!
-
 class Brewed_Tests < MiniTest::Test
   TEST_HOME          = Pathname.new( Dir.home )
   TEST_HOST          = :bigmac
   TEST_MODE          = ENV['BREWED_MODE'].to_sym
   TEST_BREWED_NAME   = 'brewed'
 
-  TEST_BREWED_ROOT      = Pathname.new(__FILE__).dirname.dirname
+  TEST_BREWED_ROOT      = Pathname.new(__FILE__).expand_path.dirname.dirname
   TEST_BREWED_LIB       = TEST_BREWED_ROOT + 'lib'
   TEST_BREWED_STATEROOT = TEST_HOME + 'state' + TEST_HOST.to_s + TEST_BREWED_NAME.downcase
   TEST_BREWED_LOG       = TEST_BREWED_STATEROOT + TEST_MODE.to_s
