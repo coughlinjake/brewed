@@ -2,6 +2,8 @@
 
 require_relative './test_helper'
 
+require 'brewed'
+
 class String_Tests < MiniTest::Test
 
   def test_safe_strip!()

@@ -2,10 +2,10 @@
 
 require_relative './test_helper'
 
-require 'params'
+require 'brewed/params'
 
 class FooNoDefaults
-  include Params
+  include ::Brewed::Params
   attr_accessor :a, :b, :c, :d, :e, :f
   def initialize(properties = {})
     self.init! properties
@@ -13,7 +13,7 @@ class FooNoDefaults
 end
 
 class FooDefaults
-  include Params
+  include ::Brewed::Params
   attr_accessor :a, :b, :c, :d, :e, :f
   def initialize(properties = {})
     self.init! properties,
@@ -24,7 +24,7 @@ class FooDefaults
 end
 
 class Params_Params_Tests < MiniTest::Test
-  include Params
+  include ::Brewed::Params
 
   def test_no_defaults()
     props = {:a => [1], :b => [2], :c => [3]}
@@ -101,7 +101,7 @@ class Params_Params_Tests < MiniTest::Test
     }
     new_props = self.params! props, defs
 
-    File.open('test1.yml', 'w') { |fh| fh.print Psych.dump(new_props) }
+    #File.open('test1.yml', 'w') { |fh| fh.print Psych.dump(new_props) }
 
     assert_equal( {:a => [1], :b => [2], :c => [3]}, props, "PROPS, defs, new_props are independent" )
 

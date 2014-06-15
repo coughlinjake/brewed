@@ -5,9 +5,7 @@
 
 require_relative './test_helper'
 
-require_relative '../lib/brewed'
-
-require 'data-utils/canonical'
+require 'brewed/data/canonical'
 
 class Canon_Tests < Minitest::Test
 

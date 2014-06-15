@@ -24,6 +24,9 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'minitest-reporters',   '>= 1.0.0'
   spec.add_development_dependency 'yard',                 '~> 0.8.7.4'
 
+  spec.add_development_dependency 'pry'
+  spec.add_development_dependency 'byebug'
+
   spec.add_dependency 'psych',                            '~> 2.0.5'
   spec.add_dependency 'unidecoder',                       '~> 1.1.2'
 end
