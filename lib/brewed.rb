@@ -320,6 +320,10 @@ module Brewed
       # anyone wants/needs to inspect it
       ENV[env_var_name] = run_mode.to_s if env_var_name.is_str?
 
+      # FIXME|this is SUPPOSED to be a Pathname by now, but occasionally
+      # jobmgr has @state_dir as a String.
+      @state_dir = Pathname(@state_dir)
+
       [_state_root, state_dir].each do |dir|
         raise "invalid state dir, not a dir: '#{dir}'" unless dir.directory?
       end
