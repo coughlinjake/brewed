@@ -4,7 +4,7 @@ require 'time'
 require 'date'
 
 class Time
-  def to_date()     Date.new(year, month, day);                     rescue NameError; nil; end
+  def to_date()     ::Date.new(year, month, day);                   rescue NameError; nil; end
   def to_datetime() DateTime.new(year, month, day, hour, min, sec); rescue NameError; nil; end
 end
 
@@ -35,7 +35,7 @@ module Brewed
     #    dow = DateUtils.dow (Date.today - 1)
     ##
     def self.dow(dt = nil)
-      Date::ABBR_DAYNAMES[ to_datetime(dt).wday ].downcase.to_sym
+      ::Date::ABBR_DAYNAMES[ to_datetime(dt).wday ].downcase.to_sym
     end
 
     ##
@@ -70,9 +70,9 @@ module Brewed
         when Integer    then dt
         when Time       then dt.to_i
         when DateTime   then Time.local(dt.year,dt.month,dt.day,dt.hour,dt.min,dt.sec).to_i
-        when Date       then Time.local(dt.year,dt.month,dt.day,0,0,0).to_i
+        when ::Date     then Time.local(dt.year,dt.month,dt.day,0,0,0).to_i
         else
-          raise ArgumentError, "unknown input datetime format: #{dt.to_s}"
+          raise ArgumentError, "unknown input datetime format: #{dt.class.to_s} (#{dt.to_s})"
       end
     end
 
@@ -88,12 +88,16 @@ module Brewed
       dt = Time.at(dt) if dt.is_a? Integer
       case dt
         when DateTime then  dt
+        when ::Date   then  DateTime.new(dt.year, dt.month, dt.day, 0, 0, 0)
         when NilClass then  DateTime.now
-        when Date     then  DateTime.new(dt.year, dt.month, dt.day, 0, 0, 0)
         when Time     then  DateTime.new(dt.year, dt.month, dt.day, dt.hour, dt.min, dt.sec)
         when String   then  DateTime.parse(dt)
         else
-          raise ArgumentError, "unknown input datetime format: #{dt.to_s}"
+          if dt.is_a? ::Date
+            dt = DateTime.new(dt.year, dt.month, dt.day, 0, 0, 0)
+          else
+            raise ArgumentError, "unknown input datetime format: #{dt.class.to_s} (#{dt.to_s})"
+          end
       end
     end
 
@@ -104,13 +108,13 @@ module Brewed
     def self.to_date(dt)
       dt = Time.at(dt) if dt.is_a? Integer
       case dt
-        when Date       then dt
-        when NilClass   then Date.today
         when DateTime   then dt.to_date
-        when Time       then Date.new(dt.year, dt.month, dt.day)
-        when String     then Date.parse(dt)
+        when ::Date     then dt
+        when NilClass   then ::Date.today
+        when Time       then ::Date.new(dt.year, dt.month, dt.day)
+        when String     then ::Date.parse(dt)
         else
-          raise ArgumentError, "unknown input datetime format: #{dt.to_s}"
+          raise ArgumentError, "unknown input datetime format: #{dt.class.to_s} (#{dt.to_s})"
       end
     end
 
@@ -126,7 +130,7 @@ module Brewed
     def self.sunday(t)
       dt  = to_datetime t
       sun = dt - dt.cwday
-      (t.is_a? Date) ? sun.to_date : sun
+      (t.is_a? ::Date) ? sun.to_date : sun
     end
 
     ##
@@ -141,7 +145,7 @@ module Brewed
     def self.monday(t)
       dt  = to_datetime t
       mon = dt - (dt.cwday - 1)
-      (t.is_a? Date) ? mon.to_date : mon
+      (t.is_a? ::Date) ? mon.to_date : mon
     end
 
     ##
