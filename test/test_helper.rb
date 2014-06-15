@@ -1,5 +1,7 @@
 require 'pathname'
 
+ENV['BREWED_MODE'] = 'development'
+
 class TestHelper
   TEST_DIR   = Pathname.new(__FILE__).expand_path.dirname.freeze
   DATA_DIR   = (TEST_DIR + 'data').freeze

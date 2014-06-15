@@ -273,8 +273,10 @@ module Brewed
     ##
     def set_run_mode(mode = nil)
       env_var_name = nil
-      unless @run_mode.is_str?
-        raise "too soon to set brewed_mode" unless mode.nil?
+      if @run_mode.is_str?
+        mode = @run_mode
+      else
+        #raise "too soon to set brewed_mode" unless mode.nil?
 
         # FIXME|to protect each run mode's database from stomping on the
         # others, the datamapper database is stored in a directory

@@ -12,8 +12,8 @@ require 'brewed'
 class Brewed_Tests < MiniTest::Test
   TEST_HOME          = '/Users/jakec'
   TEST_HOST          = 'bigmac'
-  TEST_MODE          = ENV['ITUNES_MODE'].to_sym
-  TEST_BREWED_NAME      = 'iTunes'
+  TEST_MODE          = ENV['BREWED_MODE'].to_sym
+  TEST_BREWED_NAME   = 'brewed'
 
   TEST_BREWED_ROOT      = "#{TEST_HOME}/UNISON/src/ruby/#{TEST_BREWED_NAME}"
   TEST_BREWED_LIB       = "#{TEST_HOME}/UNISON/src/ruby/#{TEST_BREWED_NAME}/lib"
@@ -43,12 +43,12 @@ class Brewed_Tests < MiniTest::Test
                  "Brewed.run_mode = '#{TEST_MODE}'"
   end
   def test_project()
-    assert_equal Brewed.instance.libdir,
+    assert_equal Brewed.libdir,
                  TEST_BREWED_LIB,
                  "Brewed.instance.libdir = '#{TEST_BREWED_LIB}'"
   end
   def test_state_root()
-    assert_equal Brewed.instance.state_root,
+    assert_equal Brewed.state_root,
                  TEST_BREWED_STATEROOT,
                  "Brewed.instance.state_root = '#{TEST_BREWED_STATEROOT}'"
   end
