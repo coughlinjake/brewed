@@ -1,7 +1,13 @@
 require 'pathname'
 
+class TestHelper
+  TEST_DIR   = Pathname.new(__FILE__).expand_path.dirname.freeze
+  DATA_DIR   = (TEST_DIR + 'data').freeze
+  LIB_DIR    = (TEST_DIR.dirname + 'lib').freeze
+end
+
 [
-    (Pathname.new(__FILE__).expand_path.dirname + '../lib').to_s,
+    TestHelper::LIB_DIR.to_s,
 ].each { |p| $LOAD_PATH.unshift(p) unless $LOAD_PATH.include? p }
 
 gem 'minitest'
@@ -10,11 +16,10 @@ require 'minitest/autorun'
 # MiniTest::Reporters.use!
 
 require 'psych'
-require 'data-utils'
+require 'brewed'
+require 'brewed/data'
 
 class TestHelper
-  DATA_DIR = (Pathname.new(__FILE__).expand_path.dirname + 'data').freeze
-
   def data_dir(*paths)        self.class.data_dir(*paths)         end
   def self.data_dir(*paths)  ([DATA_DIR, *paths].reduce :+).to_s  end
 
