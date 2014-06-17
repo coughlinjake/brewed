@@ -8,8 +8,15 @@ class Time
   def to_datetime() DateTime.new(year, month, day, hour, min, sec); rescue NameError; nil; end
 end
 
+##
+## =========================
+## == Brewed::DateMethods ==
+## =========================
+##
+## The datetime methods can be merged into any class.
+##
 module Brewed
-  module Date
+  module DateMethods
     DOW_M_D   = '%a, %b %d'.freeze
     DOW_DT_TM = '%a, %b %d %H:%M'.freeze
     Y_M_D     = '%Y-%m-%d'.freeze
@@ -35,7 +42,7 @@ module Brewed
     # @example Determine yesterday's day of the week
     #    dow = DateUtils.dow (Date.today - 1)
     ##
-    def self.dow(dt = nil)
+    def dow(dt = nil)
       ::Date::ABBR_DAYNAMES[ to_datetime(dt).wday ].downcase.to_sym
     end
 
@@ -44,7 +51,7 @@ module Brewed
     #
     # @return [FixedNum]
     ##
-    def self.epoch_now()
+    def epoch_now()
       Time.now.to_i
     end
 
@@ -54,7 +61,7 @@ module Brewed
     # @param epoch  [FixedNum]
     # @return       [DateTime]
     ##
-    def self.epoch_time(epoch)
+    def epoch_time(epoch)
       Time.at(epoch)
     end
 
@@ -66,7 +73,7 @@ module Brewed
     # @param dt   see DateUtils.to_datetime
     # @return     [FixedNum]
     ##
-    def self.to_epoch(dt)
+    def to_epoch(dt)
       return nil if dt.nil?
       dt = DateTime.parse(dt) if dt.is_a? String
       case dt
@@ -87,7 +94,7 @@ module Brewed
     # @param dt [nil, String, Integer, Time, Date, DateTime]
     # @return   [DateTime]
     ##
-    def self.to_datetime(dt)
+    def to_datetime(dt)
       return nil if dt.nil?
       dt = Time.at(dt) if dt.is_a? Integer
       case dt
@@ -109,7 +116,7 @@ module Brewed
     #
     # @note to_date(nil) => nil
     ##
-    def self.to_date(dt)
+    def to_date(dt)
       return nil if dt.nil?
       dt = Time.at(dt) if dt.is_a? Integer
       case dt
@@ -131,7 +138,7 @@ module Brewed
     # @param t  [nil, String, Integer, Time, Date, DateTime]
     # @return   [Date, DateTime]
     ##
-    def self.sunday(t)
+    def sunday(t)
       dt  = to_datetime t
       sun = dt - dt.cwday
       (t.is_a? ::Date) ? sun.to_date : sun
@@ -146,7 +153,7 @@ module Brewed
     # @param t  [nil, String, Integer, Time, Date, DateTime]
     # @return   [Date, DateTime]
     ##
-    def self.monday(t)
+    def monday(t)
       dt  = to_datetime t
       mon = dt - (dt.cwday - 1)
       (t.is_a? ::Date) ? mon.to_date : mon
@@ -176,7 +183,7 @@ module Brewed
     # @example Return 2014-02-14 20:00 as a DateTime
     #    dt = DateUtils.date_tod Date.parse('2014-02-14'), '20:00'
     ##
-    def self.date_tod(dt, tm)
+    def date_tod(dt, tm)
       DateTime.parse "#{fmt_date(dt)} #{tm}"
     end
 
@@ -194,7 +201,7 @@ module Brewed
     # @param dt   [Time]
     # @return     [Time]
     ##
-    def self.from_utc(dt)
+    def from_utc(dt)
       return nil if dt.nil?
       case dt
         when Time   then  dt.localtime
@@ -209,14 +216,14 @@ module Brewed
     # @param dt [DateTime]
     # @return [String]
     ##
-    def self.fmt_dow_date(dt)         _format_dt dt, DOW_M_D    end
-    def self.fmt_dow_datetime(dt)     _format_dt dt, DOW_DT_TM  end
-    def self.fmt_date(dt)             _format_dt dt, Y_M_D      end
+    def fmt_dow_date(dt)         _format_dt dt, DOW_M_D    end
+    def fmt_dow_datetime(dt)     _format_dt dt, DOW_DT_TM  end
+    def fmt_date(dt)             _format_dt dt, Y_M_D      end
 
-    def self.fmt_dt(dt)               _format_dt dt, DT_TM      end
-    def self.fmt_d_bt(dt)             _format_dt dt, DT_B_TM_B  end
+    def fmt_dt(dt)               _format_dt dt, DT_TM      end
+    def fmt_d_bt(dt)             _format_dt dt, DT_B_TM_B  end
 
-    def self.fmt_y_mon_d_tm(dt)       _format_dt dt, Y_MON_D_TM end
+    def fmt_y_mon_d_tm(dt)       _format_dt dt, Y_MON_D_TM end
 
     ##
     # Format the provided DateTime object for display in page.
@@ -224,8 +231,8 @@ module Brewed
     # @param dt [DateTime]
     # @return [String]
     ##
-    def self.fmt_time(dt)             _format_dt dt, H12_M_PM   end
-    def self.fmt_time24(dt)           _format_dt dt, H24_M      end
+    def fmt_time(dt)             _format_dt dt, H12_M_PM   end
+    def fmt_time24(dt)           _format_dt dt, H24_M      end
 
     ##
     # Format the provided DateTime object with a DOW.
@@ -233,7 +240,7 @@ module Brewed
     # @param dt [DateTime]
     # @return [String]
     ##
-    def self.fmt_dow_dt(dt)           _format_dt dt, DOW_DT     end
+    def fmt_dow_dt(dt)           _format_dt dt, DOW_DT     end
 
     ##
     # Format the provided DateTime object suitable for the HTML datetime picker element.
@@ -241,19 +248,28 @@ module Brewed
     # @param dt [DateTime]
     # @return [String]
     ##
-    def self.fmt_dt_picker(dt)        _format_dt dt, DSLASHT    end
-    def self.fmt_dt_compact(dt)       _format_dt dt, DT_TM      end
-    def self.fmt_dt_compact_brac(dt)  _format_dt dt, DT_B_TM_B  end
+    def fmt_dt_picker(dt)        _format_dt dt, DSLASHT    end
+    def fmt_dt_compact(dt)       _format_dt dt, DT_TM      end
+    def fmt_dt_compact_brac(dt)  _format_dt dt, DT_B_TM_B  end
 
-    def self.fmt_dt_tm(dt)            _format_dt dt, MD_TIME    end
-    def self.fmt_tm_dt(dt)            _format_dt dt, TIME_MD    end
+    def fmt_dt_tm(dt)            _format_dt dt, MD_TIME    end
+    def fmt_tm_dt(dt)            _format_dt dt, TIME_MD    end
 
-    private
-
-    def self._format_dt(dt, format)
+    def _format_dt(dt, format)
       dt = to_datetime dt
       (dt.respond_to? :strftime) ? dt.strftime(format) : EMPTY
     end
+  end
+end
 
+## ==================
+## == Brewed::Date ==
+## ==================
+##
+## The Brewed datetime methods can also be accessed as class methods of ::Brewed::Date.
+##
+module Brewed
+  class Date
+    extend ::Brewed::DateMethods
   end
 end
