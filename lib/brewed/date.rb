@@ -11,6 +11,7 @@ end
 module Brewed
   module Date
     DOW_M_D   = '%a, %b %d'.freeze
+    DOW_DT_TM = '%a, %b %d %H:%M'.freeze
     Y_M_D     = '%Y-%m-%d'.freeze
     H12_M_PM  = '%l:%M %P'.freeze
     H24_M     = '%H:%M'.freeze
@@ -60,13 +61,15 @@ module Brewed
     ##
     # Convert from any datetime representation to Epoch time.
     #
+    # @note to_epoch(nil) => nil
+    #
     # @param dt   see DateUtils.to_datetime
     # @return     [FixedNum]
     ##
     def self.to_epoch(dt)
+      return nil if dt.nil?
       dt = DateTime.parse(dt) if dt.is_a? String
       case dt
-        when NilClass   then Time.now.to_i
         when Integer    then dt
         when Time       then dt.to_i
         when DateTime   then Time.local(dt.year,dt.month,dt.day,dt.hour,dt.min,dt.sec).to_i
@@ -79,17 +82,17 @@ module Brewed
     ##
     # Convert from any datetime representation to a DateTime object.
     #
-    # to_datetime(nil) === DateTime.now
+    # @note to_datetime(nil) => nil
     #
     # @param dt [nil, String, Integer, Time, Date, DateTime]
     # @return   [DateTime]
     ##
     def self.to_datetime(dt)
+      return nil if dt.nil?
       dt = Time.at(dt) if dt.is_a? Integer
       case dt
         when DateTime then  dt
         when ::Date   then  DateTime.new(dt.year, dt.month, dt.day, 0, 0, 0)
-        when NilClass then  DateTime.now
         when Time     then  DateTime.new(dt.year, dt.month, dt.day, dt.hour, dt.min, dt.sec)
         when String   then  DateTime.parse(dt)
         else
@@ -104,13 +107,14 @@ module Brewed
     ##
     # Convert any datetime representation to a Date object.
     #
+    # @note to_date(nil) => nil
     ##
     def self.to_date(dt)
+      return nil if dt.nil?
       dt = Time.at(dt) if dt.is_a? Integer
       case dt
         when DateTime   then dt.to_date
         when ::Date     then dt
-        when NilClass   then ::Date.today
         when Time       then ::Date.new(dt.year, dt.month, dt.day)
         when String     then ::Date.parse(dt)
         else
@@ -191,6 +195,7 @@ module Brewed
     # @return     [Time]
     ##
     def self.from_utc(dt)
+      return nil if dt.nil?
       case dt
         when Time   then  dt.localtime
         else
@@ -205,6 +210,7 @@ module Brewed
     # @return [String]
     ##
     def self.fmt_dow_date(dt)         _format_dt dt, DOW_M_D    end
+    def self.fmt_dow_datetime(dt)     _format_dt dt, DOW_DT_TM  end
     def self.fmt_date(dt)             _format_dt dt, Y_M_D      end
 
     def self.fmt_dt(dt)               _format_dt dt, DT_TM      end
@@ -245,7 +251,8 @@ module Brewed
     private
 
     def self._format_dt(dt, format)
-      to_datetime(dt).strftime(format)
+      dt = to_datetime dt
+      (dt.respond_to? :strftime) ? dt.strftime(format) : EMPTY
     end
 
   end
