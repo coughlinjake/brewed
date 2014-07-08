@@ -29,6 +29,10 @@ module Settings
     end
   end
 
+  def namespaces()
+    _settings.keys
+  end
+
   def method_missing(m, *args, &block)
     load_dir if @_settings.empty?
     raise "#{self.to_s}: no top-level settings key: '#{m.to_s}'" unless self.respond_to? m
