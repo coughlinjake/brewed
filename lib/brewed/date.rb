@@ -190,8 +190,8 @@ module Brewed
     ##
     # Return the current datetime as YYYY-MM-DD HH:mm.
     ##
-    def self.now_str()               _format_dt DateTime.now, DT_TM   end
-    def self.today_str()             _format_dt DateTime.now, Y_M_D   end
+    def now_str()               _format_dt DateTime.now, DT_TM   end
+    def today_str()             _format_dt DateTime.now, Y_M_D   end
 
     ##
     # Convert a UTC datetime to local time.
